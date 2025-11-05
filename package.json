@@ -1,0 +1,24 @@
+{
+  "name": "datavis-a2",
+  "version": "1.0.0",
+  "description": "This repository contains the bare-bones files to start up and solve the second assignment of the DataVis course at TU Dresden.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kovalchm/datavis-a2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kovalchm/datavis-a2/issues"
+  },
+  "homepage": "https://github.com/kovalchm/datavis-a2#readme",
+  "dependencies": {
+    "d3": "^7.9.0"
+  }
+}
