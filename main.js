@@ -138,17 +138,17 @@ function drawScatterplot(data) {
     .attr("cx", d => xScale(d.retailPrice))
     .attr("cy", d => yScale(d.weight))
     .attr("r", 4)
-    .attr("fill", d => getColor(d))
-    .attr("opacity", 1.0)
-    .attr("stroke", "#333")
-    .attr("stroke-width", 0.5);
+    .attr("fill", "none")
+    .attr("stroke", d => getColor(d))
+    .attr("stroke-width", 3)
+    .attr("stroke-opacity", 0.8);
 
   // Chart title
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", -15)
     .attr("text-anchor", "middle")
-    .style("font-size", "16px")
+    .style("font-size", "24px")
     .style("font-weight", "bold")
     .style("font-family", "monospace")
     .text("Retail Price vs Weight");
