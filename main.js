@@ -100,6 +100,13 @@ function showDetails(data) {
 
 // Draw scatter plot: Retail Price (x) vs Weight (y)
 function drawScatterplot(data) {
+  // Configuration: border and axis line width
+  const borderWidth = 3.5;
+  // Configuration: axis tick font size
+  const axisFontSize = "15px";
+  // Configuration: axis title and legend font size
+  const titleFontSize = "16px";
+
   // Filter out rows with missing retailPrice or weight
   const cleanData = data.filter(d => d.retailPrice && d.weight);
 
@@ -164,32 +171,66 @@ function drawScatterplot(data) {
     .nice();
 
   // X axis
-  svg.append("g")
+  const xAxis = svg.append("g")
     .attr("transform", `translate(0, ${height})`)
-    .call(d3.axisBottom(xScale))
-    .style("font-family", "monospace")
-    .append("text")
+    .call(d3.axisBottom(xScale).tickSizeInner(-5).tickSizeOuter(0).tickPadding(10).tickFormat(d => `${d/1000}K`))
+    .style("font-family", "monospace");
+  
+  xAxis.select(".domain").attr("stroke-width", borderWidth);
+  xAxis.selectAll(".tick line").attr("stroke-width", borderWidth);
+  xAxis.selectAll(".tick text")
+    .style("font-size", axisFontSize)
+    .style("font-weight", "bold");
+  
+  xAxis.append("text")
     .attr("x", width / 2)
     .attr("y", 45)
     .attr("fill", "black")
-    .style("font-size", "14px")
+    .style("font-size", titleFontSize)
     .style("font-family", "monospace")
+    .style("font-weight", "bold")
     .style("text-anchor", "middle")
     .text("Retail Price ($)");
 
   // Y axis
-  svg.append("g")
-    .call(d3.axisLeft(yScale))
-    .style("font-family", "monospace")
-    .append("text")
+  const yAxis = svg.append("g")
+    .call(d3.axisLeft(yScale).tickSizeInner(-5).tickSizeOuter(0).tickPadding(10))
+    .style("font-family", "monospace");
+  
+  yAxis.select(".domain").attr("stroke-width", borderWidth);
+  yAxis.selectAll(".tick line").attr("stroke-width", borderWidth);
+  yAxis.selectAll(".tick text")
+    .style("font-size", axisFontSize)
+    .style("font-weight", "bold");
+  
+  yAxis.append("text")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
     .attr("y", -55)
     .attr("fill", "black")
-    .style("font-size", "14px")
+    .style("font-size", titleFontSize)
     .style("font-family", "monospace")
+    .style("font-weight", "bold")
     .style("text-anchor", "middle")
     .text("Weight (lbs)");
+
+  // Add top border
+  svg.append("line")
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", width)
+    .attr("y2", 0)
+    .attr("stroke", "black")
+    .attr("stroke-width", borderWidth);
+
+  // Add right border
+  svg.append("line")
+    .attr("x1", width)
+    .attr("y1", 0)
+    .attr("x2", width)
+    .attr("y2", height)
+    .attr("stroke", "black")
+    .attr("stroke-width", borderWidth);
 
   // Shape mapping function
   const getShape = (type) => {
@@ -331,7 +372,7 @@ function drawScatterplot(data) {
     .attr("x", legendX + legendWidth / 2)
     .attr("y", legendY - 10)
     .attr("text-anchor", "middle")
-    .style("font-size", "12px")
+    .style("font-size", titleFontSize)
     .style("font-family", "monospace")
     .style("font-weight", "bold")
     .text("Highway MPG");
@@ -367,7 +408,7 @@ function drawScatterplot(data) {
     .attr("x", legendX + legendWidth / 2)
     .attr("y", shapeLegendY - 10)
     .attr("text-anchor", "middle")
-    .style("font-size", "12px")
+    .style("font-size", titleFontSize)
     .style("font-family", "monospace")
     .style("font-weight", "bold")
     .text("Type");
