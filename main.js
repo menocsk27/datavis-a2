@@ -130,17 +130,46 @@ function drawScatterplot(data) {
     .style("text-anchor", "middle")
     .text("Weight (lbs)");
 
-  // Draw circles
-  svg.selectAll("circle")
+  // Shape mapping function
+  const getShape = (type) => {
+    const shapeMap = {
+      'Sedan': 'circle',
+      'SUV': 'square',
+      'Sports': 'star',
+      'Wagon': 'hexagon',
+      'Minivan': 'triangle_down'
+    };
+    return shapeMap[type] || 'circle';
+  };
+
+  // Symbol generator for d3
+  const symbolGenerator = d3.symbol().size(60);
+
+  // Draw shapes based on type
+  svg.selectAll("path.datapoint")
     .data(cleanData)
     .enter()
-    .append("circle")
-    .attr("cx", d => xScale(d.retailPrice))
-    .attr("cy", d => yScale(d.weight))
-    .attr("r", 4)
+    .append("path")
+    .attr("class", "datapoint")
+    .attr("transform", d => `translate(${xScale(d.retailPrice)}, ${yScale(d.weight)})`)
+    .attr("d", d => {
+      const shapeType = getShape(d.type);
+      if (shapeType === 'circle') {
+        symbolGenerator.type(d3.symbolCircle);
+      } else if (shapeType === 'square') {
+        symbolGenerator.type(d3.symbolSquare);
+      } else if (shapeType === 'star') {
+        symbolGenerator.type(d3.symbolStar);
+      } else if (shapeType === 'hexagon') {
+        symbolGenerator.type(d3.symbolDiamond);
+      } else if (shapeType === 'triangle_down') {
+        symbolGenerator.type(d3.symbolTriangle);
+      }
+      return symbolGenerator();
+    })
     .attr("fill", "none")
     .attr("stroke", d => getColor(d))
-    .attr("stroke-width", 3)
+    .attr("stroke-width", 3.5)
     .attr("stroke-opacity", 0.8);
 
   // Chart title
@@ -214,6 +243,45 @@ function drawScatterplot(data) {
     .style("font-size", "11px")
     .style("font-family", "monospace")
     .text("Invalid/Outlier");
+
+  // Shape legend
+  const shapeLegendY = outlierY + 50;
+  const shapeTypes = [
+    { type: 'Sedan', shape: d3.symbolCircle, label: 'Sedan' },
+    { type: 'SUV', shape: d3.symbolSquare, label: 'SUV' },
+    { type: 'Sports', shape: d3.symbolStar, label: 'Sports' },
+    { type: 'Wagon', shape: d3.symbolDiamond, label: 'Wagon' },
+    { type: 'Minivan', shape: d3.symbolTriangle, label: 'Minivan' }
+  ];
+
+  svg.append("text")
+    .attr("x", legendX + legendWidth / 2)
+    .attr("y", shapeLegendY - 10)
+    .attr("text-anchor", "middle")
+    .style("font-size", "12px")
+    .style("font-family", "monospace")
+    .style("font-weight", "bold")
+    .text("Type");
+
+  const shapeSymbol = d3.symbol().size(80);
+
+  shapeTypes.forEach((item, i) => {
+    const y = shapeLegendY + i * 25;
+    
+    svg.append("path")
+      .attr("transform", `translate(${legendX + legendWidth / 2}, ${y})`)
+      .attr("d", shapeSymbol.type(item.shape))
+      .attr("fill", "none")
+      .attr("stroke", "#333")
+      .attr("stroke-width", 2);
+
+    svg.append("text")
+      .attr("x", legendX + legendWidth + 10)
+      .attr("y", y + 4)
+      .style("font-size", "11px")
+      .style("font-family", "monospace")
+      .text(item.label);
+  });
 }
 
 // Waiting until document has loaded
