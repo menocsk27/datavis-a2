@@ -38,18 +38,28 @@ class DataLoader {
 }
 
 // Function to display data point details in a table
-function showDetails(data) {
-  // Remove existing table if any
-  d3.select("#details-table").remove();
+function showDetails(data, borderWidth = 1, titleFontSize = "14px") {
+  // Configuration: table width
+  const tableWidth = "550px";
+
+  // Remove existing container if any
+  d3.select("#details-container").remove();
+
+  // Create container for both table and star plot
+  const container = d3.select("body")
+    .append("div")
+    .attr("id", "details-container")
+    .style("margin", "20px 80px")
+    .style("display", "flex")
+    .style("gap", "20px");
 
   // Create table container
-  const table = d3.select("body")
+  const table = container
     .append("div")
     .attr("id", "details-table")
-    .style("margin", "20px 80px")
     .style("font-family", "monospace")
-    .style("border", "1px solid #333")
-    .style("display", "inline-block")
+    .style("border", `${borderWidth}px solid #333`)
+    .style("width", tableWidth)
     .style("background", "white");
 
   // Table title
@@ -57,6 +67,7 @@ function showDetails(data) {
     .style("padding", "10px")
     .style("background", "#f0f0f0")
     .style("font-weight", "bold")
+    .style("font-size", titleFontSize)
     .style("border-bottom", "1px solid #333")
     .text("Selected Data Point Details");
 
@@ -89,13 +100,122 @@ function showDetails(data) {
       .style("width", "150px")
       .style("background", "#f8f8f8")
       .style("font-weight", "bold")
+      .style("font-size", titleFontSize)
       .text(field.label);
 
     row.append("div")
       .style("padding", "8px 12px")
       .style("flex", "1")
+      .style("font-size", titleFontSize)
       .text(field.value !== undefined ? field.value : "N/A");
   });
+
+  // Create star plot (radar chart)
+  drawStarPlot(container, data, borderWidth, titleFontSize);
+}
+
+// Function to draw star plot
+function drawStarPlot(container, data, borderWidth = 1, titleFontSize = "14px") {
+  const starWidth = 420;
+  const starHeight = 350;
+  const radius = 120;
+  const centerX = starWidth / 2;
+  const centerY = starHeight / 2;
+
+  // Star plot data - 6 attributes
+  const attributes = [
+    { label: "HWMPG", value: data.percentile_highwayMPG || 0 },
+    { label: "Retail Price", value: data.percentile_retailPrice || 0 },
+    { label: "CYMPG", value: data.percentile_cityMPG || 0 },
+    { label: "Cylinder", value: data.percentile_cylinders || 0 },
+    { label: "Horsepower", value: data.percentile_horsepower || 0 },
+    { label: "Engine Size", value: data.percentile_engineSize || 0 }
+  ];
+
+  const numAxes = attributes.length;
+  const angleSlice = (Math.PI * 2) / numAxes;
+
+  // Create SVG for star plot
+  const svg = container
+    .append("div")
+    .attr("id", "star-plot")
+    .style("border", `${borderWidth}px solid #333`)
+    .style("background", "white")
+    .append("svg")
+    .attr("width", starWidth)
+    .attr("height", starHeight);
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${centerX}, ${centerY + 20})`);
+
+  // Draw circular grid lines
+  const levels = 5;
+  for (let i = 1; i <= levels; i++) {
+    const levelRadius = (radius / levels) * i;
+    g.append("circle")
+      .attr("r", levelRadius)
+      .style("fill", "none")
+      .style("stroke", "#ccc")
+      .style("stroke-width", 1);
+  }
+
+  // Draw axes
+  attributes.forEach((attr, i) => {
+    const angle = angleSlice * i - Math.PI / 2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+
+    g.append("line")
+      .attr("x1", 0)
+      .attr("y1", 0)
+      .attr("x2", x)
+      .attr("y2", y)
+      .style("stroke", "#999")
+      .style("stroke-width", 1);
+
+    // Add labels
+    const labelX = Math.cos(angle) * (radius + 30);
+    const labelY = Math.sin(angle) * (radius + 30);
+
+    g.append("text")
+      .attr("x", labelX)
+      .attr("y", labelY)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .style("font-size", titleFontSize)
+      .style("font-family", "monospace")
+      .style("font-weight", "bold")
+      .text(attr.label);
+  });
+
+  // Draw data polygon
+  const pathData = attributes.map((attr, i) => {
+    const angle = angleSlice * i - Math.PI / 2;
+    const r = radius * attr.value;
+    const x = Math.cos(angle) * r;
+    const y = Math.sin(angle) * r;
+    return [x, y];
+  });
+
+  const lineGenerator = d3.line();
+  const pathString = lineGenerator(pathData) + "Z";
+
+  g.append("path")
+    .attr("d", pathString)
+    .style("fill", "rgb(251,106,74)")
+    .style("fill-opacity", 0.6)
+    .style("stroke", "rgb(203,24,29)")
+    .style("stroke-width", 2);
+
+  // Add title
+  svg.append("text")
+    .attr("x", centerX)
+    .attr("y", 20)
+    .attr("text-anchor", "middle")
+    .style("font-size", titleFontSize)
+    .style("font-family", "monospace")
+    .style("font-weight", "bold")
+    .text("Subaru Legacy L 4dr");
 }
 
 // Draw scatter plot: Retail Price (x) vs Weight (y)
@@ -111,6 +231,37 @@ function drawScatterplot(data) {
   const cleanData = data.filter(d => d.retailPrice && d.weight);
 
   console.log(`Drawing scatter plot with ${cleanData.length} points`);
+
+  // Calculate percentiles for specified attributes
+  // Helper function to calculate percentile (0 to 1)
+  const calculatePercentile = (value, values, reverse = false) => {
+    const validValues = values.filter(v => v !== undefined);
+    if (validValues.length === 0 || value === undefined) return undefined;
+    
+    const sorted = validValues.slice().sort((a, b) => a - b);
+    const rank = sorted.filter(v => v < value).length;
+    const percentile = rank / (sorted.length - 1);
+    
+    return reverse ? 1 - percentile : percentile;
+  };
+
+  // Extract all values for each attribute
+  const retailPrices = cleanData.map(d => d.retailPrice);
+  const horsepowers = cleanData.map(d => d.horsepower);
+  const highwayMPGs = cleanData.map(d => d.highwayMPG);
+  const cylinders = cleanData.map(d => d.cylinders);
+  const cityMPGs = cleanData.map(d => d.cityMPG);
+  const engineSizes = cleanData.map(d => d.engineSize);
+
+  // Add percentile attributes to each data point
+  cleanData.forEach(d => {
+    d.percentile_retailPrice = calculatePercentile(d.retailPrice, retailPrices, true);  // reverse: 1 = cheapest
+    d.percentile_horsepower = calculatePercentile(d.horsepower, horsepowers, false);    // 1 = highest
+    d.percentile_highwayMPG = calculatePercentile(d.highwayMPG, highwayMPGs, false);    // 1 = highest
+    d.percentile_cylinders = calculatePercentile(d.cylinders, cylinders, false);        // 1 = most
+    d.percentile_cityMPG = calculatePercentile(d.cityMPG, cityMPGs, false);            // 1 = highest
+    d.percentile_engineSize = calculatePercentile(d.engineSize, engineSizes, false);    // 1 = largest
+  });
 
   // Prepare color scale based on Highway MPG
   // Separate valid values (>= 0) from invalid ones (< 0 or undefined)
@@ -370,8 +521,13 @@ function drawScatterplot(data) {
         .attr("d", symbolGeneratorLarge());
       
       // Show details
-      showDetails(d);
+      showDetails(d, borderWidth, titleFontSize);
     });
+
+  // Display the first data point by default
+  if (cleanData.length > 0) {
+    showDetails(cleanData[0], borderWidth, titleFontSize);
+  }
 
   // Chart title
   svg.append("text")

@@ -1,6 +1,9 @@
 body {
     height: 100%;
     font-family: monospace;
+    background-color: #f7fff8;
+    background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre-v2.png");
+/* This is mostly intended for prototyping; please download the pattern and re-host for production environments. Thank you! */
 }
 
 /* YOUR CSS CODE GOES HERE */
