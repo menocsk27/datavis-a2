@@ -648,7 +648,8 @@ window.onload = () => {
     .style("border", "3.5px solid #333")
     .style("border-radius", "20px")
     .style("background", "rgba(255, 255, 255, 0.8)")
-    .style("padding", "20px");
+    .style("padding", "20px")
+    .style("box-shadow", "0 16px 16px rgba(0, 0, 0, 0.3)");
 
   // Add title
   d3.select("#main-container")
