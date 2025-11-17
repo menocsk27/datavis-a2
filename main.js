@@ -46,7 +46,7 @@ function showDetails(data, borderWidth = 1, titleFontSize = "14px") {
   d3.select("#details-container").remove();
 
   // Create container for both table and star plot
-  const container = d3.select("body")
+  const container = d3.select("#main-container")
     .append("div")
     .attr("id", "details-container")
     .style("margin", "20px 80px")
@@ -77,17 +77,17 @@ function showDetails(data, borderWidth = 1, titleFontSize = "14px") {
     { label: "Type", value: data.type },
     { label: "AWD", value: data.awd },
     { label: "RWD", value: data.rwd },
-    { label: "Retail Price", value: data.retailPrice },
-    { label: "Dealer Cost", value: data.dealerCost },
-    { label: "Engine Size", value: data.engineSize },
+    { label: "Retail Price ($)", value: data.retailPrice },
+    { label: "Dealer Cost ($)", value: data.dealerCost },
+    { label: "Engine Size (l)", value: data.engineSize },
     { label: "Cylinders", value: data.cylinders },
-    { label: "Horsepower", value: data.horsepower },
+    { label: "Horsepower (HP)", value: data.horsepower },
     { label: "City MPG", value: data.cityMPG },
     { label: "Highway MPG", value: data.highwayMPG },
-    { label: "Weight", value: data.weight },
-    { label: "Wheel Base", value: data.wheelBase },
-    { label: "Length", value: data.length },
-    { label: "Width", value: data.width }
+    { label: "Weight (lbs)", value: data.weight },
+    { label: "Wheel Base (in)", value: data.wheelBase },
+    { label: "Length (in)", value: data.length },
+    { label: "Width (in)", value: data.width }
   ];
 
   fields.forEach(field => {
@@ -136,14 +136,20 @@ function drawStarPlot(container, data, borderWidth = 1, titleFontSize = "14px") 
   const angleSlice = (Math.PI * 2) / numAxes;
 
   // Create SVG for star plot
-  const svg = container
+  const starPlotDiv = container
     .append("div")
     .attr("id", "star-plot")
     .style("border", `${borderWidth}px solid #333`)
-    .style("background", "white")
+    .style("background", "transparent")
+    .style("display", "flex")
+    .style("flex-direction", "column")
+    .style("align-items", "center");
+
+  const svg = starPlotDiv
     .append("svg")
     .attr("width", starWidth)
-    .attr("height", starHeight);
+    .attr("height", starHeight)
+    .style("margin", "auto");
 
   const g = svg.append("g")
     .attr("transform", `translate(${centerX}, ${centerY + 20})`);
@@ -208,10 +214,9 @@ function drawStarPlot(container, data, borderWidth = 1, titleFontSize = "14px") 
     .style("stroke-width", 2);
 
   // Add title
-  svg.append("text")
-    .attr("x", centerX)
-    .attr("y", 20)
-    .attr("text-anchor", "middle")
+  starPlotDiv.insert("div", "svg")
+    .style("padding", "10px")
+    .style("text-align", "center")
     .style("font-size", titleFontSize)
     .style("font-family", "monospace")
     .style("font-weight", "bold")
@@ -303,7 +308,7 @@ function drawScatterplot(data) {
   const height = 600 - margin.top - margin.bottom;
 
   // Create SVG container
-  const svg = d3.select("body")
+  const svg = d3.select("#main-container")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -529,20 +534,10 @@ function drawScatterplot(data) {
     showDetails(cleanData[0], borderWidth, titleFontSize);
   }
 
-  // Chart title
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", -15)
-    .attr("text-anchor", "middle")
-    .style("font-size", "24px")
-    .style("font-weight", "bold")
-    .style("font-family", "monospace")
-    .text("Retail Price vs Weight");
-
   // Legend
   const legendWidth = 20;
   const legendHeight = 200;
-  const legendX = width + 40;
+  const legendX = width + 60;
   const legendY = 50;
 
   // Draw discrete color blocks for legend
@@ -586,10 +581,11 @@ function drawScatterplot(data) {
 
   // Legend for outliers (gray)
   const outlierY = legendY + legendHeight + 30;
-  svg.append("circle")
-    .attr("cx", legendX + legendWidth / 2)
-    .attr("cy", outlierY)
-    .attr("r", 4)
+  svg.append("rect")
+    .attr("x", legendX)
+    .attr("y", outlierY - legendWidth / 2)
+    .attr("width", legendWidth)
+    .attr("height", legendWidth)
     .attr("fill", "gray")
     .attr("stroke", "#333")
     .attr("stroke-width", 0.5);
@@ -643,6 +639,29 @@ function drawScatterplot(data) {
 
 // Waiting until document has loaded
 window.onload = () => {
+  // Create centered main container
+  d3.select("body")
+    .append("div")
+    .attr("id", "main-container")
+    .style("margin", "0 auto")
+    .style("width", "fit-content")
+    .style("border", "3.5px solid #333")
+    .style("border-radius", "20px")
+    .style("background", "rgba(255, 255, 255, 0.8)")
+    .style("padding", "20px");
+
+  // Add title
+  d3.select("#main-container")
+    .insert("div", ":first-child")
+    .style("text-align", "center")
+    .style("font-size", "28px")
+    .style("font-weight", "bold")
+    .style("font-family", "monospace")
+    .style("padding", "10px 0")
+    .style("border-bottom", "3.5px solid #333")
+    .style("margin-bottom", "5px")
+    .text("Brand Landscape of Major Automakers");
+
   const loader = new DataLoader("cars.csv");
 
   loader
