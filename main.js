@@ -37,6 +37,67 @@ class DataLoader {
   }
 }
 
+// Function to display data point details in a table
+function showDetails(data) {
+  // Remove existing table if any
+  d3.select("#details-table").remove();
+
+  // Create table container
+  const table = d3.select("body")
+    .append("div")
+    .attr("id", "details-table")
+    .style("margin", "20px 80px")
+    .style("font-family", "monospace")
+    .style("border", "1px solid #333")
+    .style("display", "inline-block")
+    .style("background", "white");
+
+  // Table title
+  table.append("div")
+    .style("padding", "10px")
+    .style("background", "#f0f0f0")
+    .style("font-weight", "bold")
+    .style("border-bottom", "1px solid #333")
+    .text("Selected Data Point Details");
+
+  // Create rows for each field
+  const fields = [
+    { label: "Name", value: data.name },
+    { label: "Type", value: data.type },
+    { label: "AWD", value: data.awd },
+    { label: "RWD", value: data.rwd },
+    { label: "Retail Price", value: data.retailPrice },
+    { label: "Dealer Cost", value: data.dealerCost },
+    { label: "Engine Size", value: data.engineSize },
+    { label: "Cylinders", value: data.cylinders },
+    { label: "Horsepower", value: data.horsepower },
+    { label: "City MPG", value: data.cityMPG },
+    { label: "Highway MPG", value: data.highwayMPG },
+    { label: "Weight", value: data.weight },
+    { label: "Wheel Base", value: data.wheelBase },
+    { label: "Length", value: data.length },
+    { label: "Width", value: data.width }
+  ];
+
+  fields.forEach(field => {
+    const row = table.append("div")
+      .style("display", "flex")
+      .style("border-bottom", "1px solid #ddd");
+
+    row.append("div")
+      .style("padding", "8px 12px")
+      .style("width", "150px")
+      .style("background", "#f8f8f8")
+      .style("font-weight", "bold")
+      .text(field.label);
+
+    row.append("div")
+      .style("padding", "8px 12px")
+      .style("flex", "1")
+      .text(field.value !== undefined ? field.value : "N/A");
+  });
+}
+
 // Draw scatter plot: Retail Price (x) vs Weight (y)
 function drawScatterplot(data) {
   // Filter out rows with missing retailPrice or weight
@@ -170,7 +231,16 @@ function drawScatterplot(data) {
     .attr("fill", "none")
     .attr("stroke", d => getColor(d))
     .attr("stroke-width", 3.5)
-    .attr("stroke-opacity", 0.8);
+    .attr("stroke-opacity", 0.8)
+    .style("cursor", "pointer")
+    .on("click", function(d) {
+      // Remove previous selection highlight
+      svg.selectAll("path.datapoint").attr("stroke-width", 3.5);
+      // Highlight selected point
+      d3.select(this).attr("stroke-width", 5);
+      // Show details
+      showDetails(d);
+    });
 
   // Chart title
   svg.append("text")
