@@ -232,6 +232,53 @@ function drawScatterplot(data) {
     .attr("stroke", "black")
     .attr("stroke-width", borderWidth);
 
+  // Zoom behavior
+  const zoom = d3.zoom()
+    .scaleExtent([0.5, 10])
+    .on("zoom", zoomed);
+
+  // Create a clipping path to restrict data points to the plot area
+  svg.append("defs")
+    .append("clipPath")
+    .attr("id", "clip")
+    .append("rect")
+    .attr("width", width)
+    .attr("height", height);
+
+  svg.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    .call(zoom);
+
+  function zoomed() {
+    const transform = d3.event.transform;
+    
+    // Update scales with zoom transform
+    const newXScale = transform.rescaleX(xScale);
+    const newYScale = transform.rescaleY(yScale);
+
+    // Update axes
+    xAxis.call(d3.axisBottom(newXScale).tickSizeInner(-5).tickSizeOuter(0).tickPadding(10).tickFormat(d => `${d/1000}K`));
+    xAxis.select(".domain").attr("stroke-width", borderWidth);
+    xAxis.selectAll(".tick line").attr("stroke-width", borderWidth);
+    xAxis.selectAll(".tick text")
+      .style("font-size", axisFontSize)
+      .style("font-weight", "bold");
+
+    yAxis.call(d3.axisLeft(newYScale).tickSizeInner(-5).tickSizeOuter(0).tickPadding(10));
+    yAxis.select(".domain").attr("stroke-width", borderWidth);
+    yAxis.selectAll(".tick line").attr("stroke-width", borderWidth);
+    yAxis.selectAll(".tick text")
+      .style("font-size", axisFontSize)
+      .style("font-weight", "bold");
+
+    // Update data points positions
+    svg.selectAll("path.datapoint")
+      .attr("transform", d => `translate(${newXScale(d.retailPrice)}, ${newYScale(d.weight)})`);
+  }
+
   // Shape mapping function
   const getShape = (type) => {
     const shapeMap = {
@@ -248,8 +295,12 @@ function drawScatterplot(data) {
   const symbolGenerator = d3.symbol().size(60);
   const symbolGeneratorLarge = d3.symbol().size(120);
 
+  // Create a group for data points with clipping
+  const dataGroup = svg.append("g")
+    .attr("clip-path", "url(#clip)");
+
   // Draw shapes based on type
-  svg.selectAll("path.datapoint")
+  dataGroup.selectAll("path.datapoint")
     .data(cleanData)
     .enter()
     .append("path")
