@@ -205,6 +205,7 @@ function drawScatterplot(data) {
 
   // Symbol generator for d3
   const symbolGenerator = d3.symbol().size(60);
+  const symbolGeneratorLarge = d3.symbol().size(120);
 
   // Draw shapes based on type
   svg.selectAll("path.datapoint")
@@ -233,11 +234,49 @@ function drawScatterplot(data) {
     .attr("stroke-width", 3.5)
     .attr("stroke-opacity", 0.8)
     .style("cursor", "pointer")
+    .style("pointer-events", "all")
     .on("click", function(d) {
-      // Remove previous selection highlight
-      svg.selectAll("path.datapoint").attr("stroke-width", 3.5);
-      // Highlight selected point
-      d3.select(this).attr("stroke-width", 5);
+      // Remove previous selection highlight - reset all points
+      svg.selectAll("path.datapoint")
+        .attr("stroke-width", 3.5)
+        .attr("stroke", d => getColor(d))
+        .attr("stroke-opacity", 0.8)
+        .attr("d", d => {
+          const shapeType = getShape(d.type);
+          if (shapeType === 'circle') {
+            symbolGenerator.type(d3.symbolCircle);
+          } else if (shapeType === 'square') {
+            symbolGenerator.type(d3.symbolSquare);
+          } else if (shapeType === 'star') {
+            symbolGenerator.type(d3.symbolStar);
+          } else if (shapeType === 'hexagon') {
+            symbolGenerator.type(d3.symbolDiamond);
+          } else if (shapeType === 'triangle_down') {
+            symbolGenerator.type(d3.symbolTriangle);
+          }
+          return symbolGenerator();
+        });
+      
+      // Highlight selected point - thick black border and larger size
+      const shapeType = getShape(d.type);
+      if (shapeType === 'circle') {
+        symbolGeneratorLarge.type(d3.symbolCircle);
+      } else if (shapeType === 'square') {
+        symbolGeneratorLarge.type(d3.symbolSquare);
+      } else if (shapeType === 'star') {
+        symbolGeneratorLarge.type(d3.symbolStar);
+      } else if (shapeType === 'hexagon') {
+        symbolGeneratorLarge.type(d3.symbolDiamond);
+      } else if (shapeType === 'triangle_down') {
+        symbolGeneratorLarge.type(d3.symbolTriangle);
+      }
+      
+      d3.select(this)
+        .attr("stroke", "black")
+        .attr("stroke-width", 5)
+        .attr("stroke-opacity", 1)
+        .attr("d", symbolGeneratorLarge());
+      
       // Show details
       showDetails(d);
     });
