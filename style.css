@@ -3,3 +3,18 @@ body {
 }
 
 /* YOUR CSS CODE GOES HERE */
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+#layout {
+    display: grid;
+    margin: 20px;
+}
+
+#scatterplot {
+    width: 1400px;
+    height: 700px;
+    border: 2px solid #ccc;
+}
