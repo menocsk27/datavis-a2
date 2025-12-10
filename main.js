@@ -23,7 +23,7 @@ const features = [
 window.onload = async () => {
   const data = [];
 
-  d3.csv('/cars.csv', (d) => data.push(d)).then(() => {
+  d3.csv('https://menocsk27.github.io/cars.csv', (d) => data.push(d)).then(() => {
     console.log(data);
     draw_scatterplot_v5(data);
     draw_legend(data);
